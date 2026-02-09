@@ -26,7 +26,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY app/ ./app/
 COPY frontend/ ./frontend/
-COPY data/ ./data/
 COPY .env.example .env
 
 # Create necessary directories
