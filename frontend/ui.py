@@ -47,8 +47,8 @@ ENTERPRISE_CSS = """
        ===================================================================== */
     :root {
         /* Primary Colors */
-        --bg-primary: #fafbfc;
-        --bg-secondary: #f4f6f8;
+        --bg-primary: #f0f0f0;
+        --bg-secondary: #e5e7eb;
         --surface: #ffffff;
         --surface-hover: #f8f9fa;
         
