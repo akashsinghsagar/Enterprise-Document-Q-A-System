@@ -88,6 +88,21 @@ app.add_middleware(
 
 
 # ============================================================================
+# Startup Event - Ensure directories exist
+# ============================================================================
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize required directories on app startup."""
+    try:
+        os.makedirs(config.raw_docs_path, exist_ok=True)
+        os.makedirs(config.vector_store_path, exist_ok=True)
+        logger.info(f"✅ Directories initialized: {config.raw_docs_path}, {config.vector_store_path}")
+    except Exception as e:
+        logger.error(f"⚠️  Warning: Could not create directories: {e}")
+
+
+# ============================================================================
 # Global State
 # ============================================================================
 
@@ -206,25 +221,59 @@ async def upload_document(
     Returns:
         UploadResponse: Upload status and details
     """
-    # Validate file type
-    if not file.filename.lower().endswith('.pdf'):
-        raise HTTPException(
-            status_code=400,
-            detail="Only PDF files are supported"
-        )
-    
-    # Sanitize filename
-    safe_filename = sanitize_filename(file.filename)
-    
-    # Save uploaded file
-    file_path = os.path.join(config.raw_docs_path, safe_filename)
-    
     try:
-        # Save file to disk
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        # Validate file type
+        if not file.filename.lower().endswith('.pdf'):
+            raise HTTPException(
+                status_code=400,
+                detail="Only PDF files are supported"
+            )
         
-        logger.info(f"Uploaded file saved: {file_path}")
+        # Ensure directories exist
+        try:
+            os.makedirs(config.raw_docs_path, exist_ok=True)
+            logger.info(f"Documents directory ensured: {config.raw_docs_path}")
+        except Exception as e:
+            logger.error(f"Failed to create documents directory: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Cannot create documents directory: {str(e)}"
+            )
+        
+        # Sanitize filename
+        safe_filename = sanitize_filename(file.filename)
+        
+        # Save uploaded file
+        file_path = os.path.join(config.raw_docs_path, safe_filename)
+        
+        logger.info(f"Saving upload to: {file_path}")
+        
+        try:
+            # Ensure file is readable before saving
+            content = await file.read()
+            if not content:
+                raise ValueError("File is empty")
+            
+            # Write file to disk
+            with open(file_path, "wb") as buffer:
+                buffer.write(content)
+            
+            file_size = len(content)
+            logger.info(f"File saved successfully: {file_path} ({file_size} bytes)")
+            
+        except Exception as e:
+            logger.error(f"Failed to save file: {type(e).__name__}: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to save file: {str(e)}"
+            )
+        
+        # Verify file was written
+        if not os.path.exists(file_path):
+            raise HTTPException(
+                status_code=500,
+                detail="File was not saved properly"
+            )
         
         # Start ingestion in background
         background_tasks.add_task(ingest_document_task, file_path)
@@ -232,6 +281,8 @@ async def upload_document(
         # Reset RAG pipeline to reload vector store after ingestion
         global rag_pipeline
         rag_pipeline = None
+        
+        logger.info(f"Upload completed and ingestion queued: {safe_filename}")
         
         return UploadResponse(
             status="success",
@@ -243,15 +294,14 @@ async def upload_document(
             }
         )
         
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error(f"Upload failed: {e}")
-        # Clean up partial file if exists
-        if os.path.exists(file_path):
-            os.remove(file_path)
+        logger.error(f"Upload error: {type(e).__name__}: {e}", exc_info=True)
         
         raise HTTPException(
             status_code=500,
-            detail=f"Upload failed: {str(e)}"
+            detail=f"Upload error: {str(e)}"
         )
 
 
