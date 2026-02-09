@@ -20,12 +20,16 @@ import requests
 # Page Configuration
 # ============================================================================
 
-st.set_page_config(
-    page_title="Document Q&A System",
-    page_icon="📚",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+try:
+    st.set_page_config(
+        page_title="Document Q&A System",
+        page_icon="📚",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+except Exception as e:
+    # Config already set or error occurred
+    pass
 
 # ============================================================================
 # Custom CSS & Styling
@@ -260,7 +264,10 @@ CUSTOM_CSS = """
 </style>
 """
 
-st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+try:
+    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+except Exception as e:
+    st.warning(f"CSS injection failed: {e}. Using default styles.")
 
 # ============================================================================
 # Configuration
@@ -343,6 +350,10 @@ def main():
         else:
             st.markdown('<div class="status-error">✗ Backend Offline</div>', unsafe_allow_html=True)
             st.error("Backend unavailable. Start with: `python -m uvicorn app.main:app --port 8000`")
+        
+        if st.button("▶ Start Backend", use_container_width=True):
+            st.info("Run this from the project root:")
+            st.code("python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload", language="bash")
         
         st.markdown("---")
         
@@ -741,4 +752,10 @@ def main():
             ))
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        import traceback
+        st.error(f"❌ Application Error: {type(e).__name__}: {str(e)}")
+        st.code(traceback.format_exc())
+        st.warning("The application encountered an error during startup. Please check the configuration and try again.")

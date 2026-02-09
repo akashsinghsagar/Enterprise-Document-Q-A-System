@@ -1,0 +1,11 @@
+# Frontend-only requirements for Streamlit Cloud deployment
+# This eliminates unnecessary backend dependencies
+
+# UI Framework
+streamlit>=1.54.0
+
+# HTTP Client
+requests>=2.32.0
+
+# Utilities
+python-dotenv>=1.0.0
