@@ -47,30 +47,39 @@ def run_fastapi_backend():
         raise
 
 
-# Start FastAPI in background thread
-logger.info("Starting backend thread...")
-backend_thread = threading.Thread(target=run_fastapi_backend, daemon=True)
-backend_thread.start()
+import requests
+
+def backend_is_healthy() -> bool:
+    try:
+        response = requests.get("http://localhost:8000/health", timeout=2)
+        return response.status_code == 200
+    except Exception:
+        return False
+
+# Start FastAPI in background thread only once
+if os.environ.get("BACKEND_STARTED") != "1" and not backend_is_healthy():
+    logger.info("Starting backend thread...")
+    os.environ["BACKEND_STARTED"] = "1"
+    backend_thread = threading.Thread(target=run_fastapi_backend, daemon=True)
+    backend_thread.start()
+else:
+    logger.info("Backend already running, skipping start")
 
 # Wait for backend to start and check if it's running
 logger.info("Waiting for backend to initialize...")
 time.sleep(5)
 
 # Verify backend is accessible
-import requests
 max_retries = 10
 for attempt in range(max_retries):
-    try:
-        response = requests.get("http://localhost:8000/health", timeout=2)
-        if response.status_code == 200:
-            logger.info("✅ Backend is running and healthy!")
-            break
-    except:
-        if attempt < max_retries - 1:
-            logger.info(f"Backend not ready yet, attempt {attempt + 1}/{max_retries}...")
-            time.sleep(1)
-        else:
-            logger.warning("Backend may not be available - Streamlit will still start")
+    if backend_is_healthy():
+        logger.info("✅ Backend is running and healthy!")
+        break
+    if attempt < max_retries - 1:
+        logger.info(f"Backend not ready yet, attempt {attempt + 1}/{max_retries}...")
+        time.sleep(1)
+    else:
+        logger.warning("Backend may not be available - Streamlit will still start")
 
 # Import and run Streamlit UI
 sys.path.insert(0, str(project_root / "frontend"))
