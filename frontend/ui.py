@@ -730,13 +730,39 @@ def check_api_health():
         return False, {}
 
 def upload_document(file):
-    """Upload PDF."""
+    """Upload PDF with detailed error handling."""
     try:
+        # First check if backend is accessible
+        try:
+            health_response = requests.get(f"{API_BASE_URL}/health", timeout=5)
+            if health_response.status_code != 200:
+                return False, {"error": "Backend not ready. Please wait a moment and try again."}
+        except requests.exceptions.ConnectionError:
+            return False, {"error": f"Cannot reach backend at {API_BASE_URL}. Backend may be offline."}
+        except requests.exceptions.Timeout:
+            return False, {"error": "Backend connection timeout. Backend may be overloaded."}
+        
+        # Attempt upload
         files = {"file": (file.name, file, "application/pdf")}
         response = requests.post(f"{API_BASE_URL}/upload", files=files, timeout=60)
-        return response.status_code == 200, response.json() if response.status_code == 200 else {"error": "Upload failed"}
+        
+        if response.status_code == 200:
+            return True, response.json()
+        elif response.status_code == 413:
+            return False, {"error": "File too large"}
+        elif response.status_code == 400:
+            return False, {"error": response.json().get("detail", "Invalid file format")}
+        elif response.status_code == 500:
+            return False, {"error": "Backend error processing file"}
+        else:
+            return False, {"error": f"Upload failed (status: {response.status_code})"}
+            
+    except requests.exceptions.Timeout:
+        return False, {"error": "Upload timeout - file may be too large"}
+    except requests.exceptions.ConnectionError as e:
+        return False, {"error": f"Connection error: {str(e)[:100]}"}
     except Exception as e:
-        return False, {"error": str(e)}
+        return False, {"error": f"Upload error: {str(e)[:100]}"}
 
 def query_documents(question, return_sources=True):
     """Ask question."""
@@ -1073,7 +1099,25 @@ def main():
                         time.sleep(2)
                         st.rerun()
                     else:
-                        st.error(f"❌ Upload failed: {result.get('error', 'Unknown error')}")
+                        error_msg = result.get('error', 'Unknown error occurred')
+                        st.error(f"❌ Upload Failed")
+                        st.markdown(f"**Reason:** {error_msg}")
+                        
+                        # Provide troubleshooting tips
+                        with st.expander("🔧 Troubleshooting", expanded=True):
+                            st.markdown("""
+                            **Common issues and solutions:**
+                            
+                            1. **Backend Offline**: Go to Dashboard tab and check System Health
+                            2. **Connection Timeout**: Backend may be starting. Wait 30 seconds and try again
+                            3. **File Too Large**: Maximum size is 50MB
+                            4. **Invalid PDF**: Ensure the PDF file is not corrupted
+                            
+                            **Still having issues?** 
+                            - Check the Dashboard → System Health
+                            - Click "Test Connection" to verify backend
+                            - Try restarting the app
+                            """)
         else:
             st.markdown(
                 '''
