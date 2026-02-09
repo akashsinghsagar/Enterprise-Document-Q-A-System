@@ -47,43 +47,43 @@ ENTERPRISE_CSS = """
        ===================================================================== */
     :root {
         /* Primary Colors */
-        --bg-primary: #f0f0f0;
-        --bg-secondary: #e5e7eb;
-        --surface: #ffffff;
-        --surface-hover: #f8f9fa;
+        --bg-primary: #2a2a2a;
+        --bg-secondary: #353535;
+        --surface: #3a3a3a;
+        --surface-hover: #404040;
         
         /* Borders & Dividers */
-        --border-light: #e1e4e8;
-        --border-medium: #d1d5db;
-        --border-strong: #9ca3af;
+        --border-light: #505050;
+        --border-medium: #606060;
+        --border-strong: #707070;
         
         /* Text Colors - WCAG AA Compliant */
-        --text-primary: #1a202c;
-        --text-secondary: #4a5568;
-        --text-tertiary: #718096;
-        --text-muted: #a0aec0;
+        --text-primary: #e8e8e8;
+        --text-secondary: #b0b0b0;
+        --text-tertiary: #808080;
+        --text-muted: #606060;
         
         /* Brand & Accent */
-        --accent: #3b82f6;
-        --accent-hover: #2563eb;
-        --accent-light: #dbeafe;
+        --accent: #60a5fa;
+        --accent-hover: #3b82f6;
+        --accent-light: #1e3a8a;
         
         /* Semantic Colors */
-        --success: #10b981;
-        --success-bg: #d1fae5;
-        --success-border: #6ee7b7;
+        --success: #4ade80;
+        --success-bg: #064e3b;
+        --success-border: #10b981;
         
-        --warning: #f59e0b;
-        --warning-bg: #fef3c7;
-        --warning-border: #fcd34d;
+        --warning: #facc15;
+        --warning-bg: #78350f;
+        --warning-border: #f59e0b;
         
-        --error: #ef4444;
-        --error-bg: #fee2e2;
-        --error-border: #fca5a5;
+        --error: #f87171;
+        --error-bg: #7f1d1d;
+        --error-border: #ef4444;
         
-        --info: #3b82f6;
-        --info-bg: #dbeafe;
-        --info-border: #93c5fd;
+        --info: #60a5fa;
+        --info-bg: #1e3a8a;
+        --info-border: #3b82f6;
         
         /* Shadows - Subtle Elevation */
         --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
