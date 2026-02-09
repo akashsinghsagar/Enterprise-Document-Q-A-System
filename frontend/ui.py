@@ -1,11 +1,12 @@
 """
-Professional Streamlit UI for Enterprise Document Q&A System
+Enterprise-Grade Streamlit UI for Document Q&A System
 
-Modern, responsive interface with professional CSS styling for:
-- Document upload
-- Question answering
-- Source visualization
-- System status monitoring
+Professional SaaS-style interface with:
+- Modern card-based layout
+- Perfect visual hierarchy
+- WCAG-compliant contrast
+- Responsive design
+- Clean spacing and alignment
 """
 
 import os
@@ -17,257 +18,697 @@ import streamlit as st
 import requests
 
 # ============================================================================
-# Page Configuration
+# PAGE CONFIGURATION
 # ============================================================================
 
 try:
     st.set_page_config(
-        page_title="Document Q&A System",
-        page_icon="📚",
+        page_title="Enterprise Document Q&A",
+        page_icon="🏢",
         layout="wide",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state="expanded",
+        menu_items={
+            'Get Help': None,
+            'Report a bug': None,
+            'About': "Enterprise Document Q&A System - Powered by RAG"
+        }
     )
 except Exception as e:
-    # Config already set or error occurred
-    pass
+    pass  # Config already set
 
 # ============================================================================
-# Custom CSS & Styling
+# PROFESSIONAL CSS STYLING
 # ============================================================================
 
-CUSTOM_CSS = """
+ENTERPRISE_CSS = """
 <style>
+    /* =====================================================================
+       COLOR PALETTE - Modern Enterprise Theme
+       ===================================================================== */
     :root {
-        --bg: #f5f7fb;
+        /* Primary Colors */
+        --bg-primary: #fafbfc;
+        --bg-secondary: #f4f6f8;
         --surface: #ffffff;
-        --surface-muted: #f0f3f9;
-        --border: #e2e8f0;
-        --text-primary: #0f172a;
-        --text-secondary: #475569;
-        --accent: #2563eb;
-        --accent-strong: #1d4ed8;
-        --success: #16a34a;
-        --danger: #dc2626;
+        --surface-hover: #f8f9fa;
+        
+        /* Borders & Dividers */
+        --border-light: #e1e4e8;
+        --border-medium: #d1d5db;
+        --border-strong: #9ca3af;
+        
+        /* Text Colors - WCAG AA Compliant */
+        --text-primary: #1a202c;
+        --text-secondary: #4a5568;
+        --text-tertiary: #718096;
+        --text-muted: #a0aec0;
+        
+        /* Brand & Accent */
+        --accent: #3b82f6;
+        --accent-hover: #2563eb;
+        --accent-light: #dbeafe;
+        
+        /* Semantic Colors */
+        --success: #10b981;
+        --success-bg: #d1fae5;
+        --success-border: #6ee7b7;
+        
         --warning: #f59e0b;
-        --shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+        --warning-bg: #fef3c7;
+        --warning-border: #fcd34d;
+        
+        --error: #ef4444;
+        --error-bg: #fee2e2;
+        --error-border: #fca5a5;
+        
+        --info: #3b82f6;
+        --info-bg: #dbeafe;
+        --info-border: #93c5fd;
+        
+        /* Shadows - Subtle Elevation */
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.10), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        
+        /* Spacing Scale */
+        --space-xs: 0.25rem;
+        --space-sm: 0.5rem;
+        --space-md: 1rem;
+        --space-lg: 1.5rem;
+        --space-xl: 2rem;
+        --space-2xl: 3rem;
+        
+        /* Border Radius */
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 14px;
+        --radius-xl: 18px;
+        
+        /* Typography */
+        --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+        --font-mono: 'SF Mono', Monaco, Consolas, 'Courier New', monospace;
     }
 
-    /* App background and container width */
+    /* =====================================================================
+       BASE LAYOUT & STRUCTURE
+       ===================================================================== */
     .stApp {
-        background: var(--bg);
-        color: var(--text-primary);
+        background: var(--bg-primary);
+        font-family: var(--font-body);
     }
-
+    
     .stMain {
-        background: var(--bg) !important;
+        background: var(--bg-primary);
     }
-
-    section.stMain {
-        background: var(--bg) !important;
-    }
-
+    
     .block-container {
-        max-width: 1100px;
-        padding: 2.5rem 2rem 3rem;
+        max-width: 1000px;
+        padding: var(--space-xl) var(--space-lg) var(--space-2xl);
     }
-
-    /* Typography and base text */
-    .stMarkdown,
-    .stMarkdown p,
-    .stMarkdown li,
-    .stMarkdown span,
-    .stMarkdown h1,
-    .stMarkdown h2,
-    .stMarkdown h3,
-    .stMarkdown h4,
-    .stMarkdown h5,
-    .stMarkdown h6,
-    .stMarkdown a {
-        color: var(--text-primary) !important;
+    
+    /* Remove default Streamlit padding/margin quirks */
+    .element-container {
+        margin-bottom: 0 !important;
     }
-
-    h1, h2, h3, h4 {
-        letter-spacing: -0.02em;
-    }
-
-    .stMarkdown p {
-        line-height: 1.75;
-        color: var(--text-secondary) !important;
-    }
-
-    /* Header */
-    .page-header {
-        background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 2rem 2.5rem;
-        margin-bottom: 2rem;
-        box-shadow: var(--shadow);
-    }
-
-    .page-title {
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin-bottom: 0.35rem;
+    
+    /* =====================================================================
+       TYPOGRAPHY SYSTEM
+       ===================================================================== */
+    html, body, [class*="css"] {
+        font-family: var(--font-body);
         color: var(--text-primary);
     }
-
-    .page-subtitle {
-        font-size: 1.05rem;
-        color: var(--text-secondary);
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-body);
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        color: var(--text-primary);
+        line-height: 1.3;
     }
-
-    /* Card layout */
+    
+    h1 { font-size: 2.25rem; margin-bottom: var(--space-md); }
+    h2 { font-size: 1.875rem; margin-bottom: var(--space-md); }
+    h3 { font-size: 1.5rem; margin-bottom: var(--space-sm); }
+    h4 { font-size: 1.25rem; margin-bottom: var(--space-sm); }
+    
+    p, .stMarkdown p {
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: var(--space-md);
+    }
+    
+    /* =====================================================================
+       HERO HEADER - Page Title Section
+       ===================================================================== */
+    .hero-header {
+        background: linear-gradient(135deg, var(--surface) 0%, var(--bg-secondary) 100%);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-xl);
+        padding: var(--space-2xl) var(--space-xl);
+        margin-bottom: var(--space-xl);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+    }
+    
+    .hero-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        margin-bottom: var(--space-sm);
+        letter-spacing: -0.03em;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.125rem;
+        color: var(--text-secondary);
+        font-weight: 400;
+        line-height: 1.6;
+    }
+    
+    .hero-badge {
+        display: inline-block;
+        background: var(--accent-light);
+        color: var(--accent);
+        padding: 0.3rem 0.75rem;
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-top: var(--space-sm);
+    }
+    
+    /* =====================================================================
+       CARD COMPONENTS - Primary Content Container
+       ===================================================================== */
     .card {
         background: var(--surface);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 1.5rem 1.75rem;
-        margin-bottom: 1.5rem;
-        box-shadow: var(--shadow);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-lg);
+        padding: var(--space-xl);
+        margin-bottom: var(--space-lg);
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease;
     }
-
+    
+    .card:hover {
+        box-shadow: var(--shadow-md);
+        border-color: var(--border-medium);
+    }
+    
+    .card-compact {
+        padding: var(--space-lg);
+    }
+    
+    .card-header {
+        margin-bottom: var(--space-lg);
+        padding-bottom: var(--space-md);
+        border-bottom: 2px solid var(--border-light);
+    }
+    
     .card-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
+        font-size: 1.5rem;
+        font-weight: 700;
         color: var(--text-primary);
+        margin-bottom: var(--space-xs);
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
     }
-
+    
     .card-subtitle {
+        font-size: 1rem;
         color: var(--text-secondary);
-        margin-bottom: 1.25rem;
-        font-size: 0.98rem;
+        line-height: 1.6;
     }
-
-    /* Inputs and controls */
-    .stTextInput input,
-    .stTextArea textarea,
-    .stSelectbox select,
-    .stFileUploader input {
-        border-radius: 10px !important;
-        border: 1px solid var(--border) !important;
-        padding: 0.65rem 0.9rem !important;
-        font-size: 0.98rem !important;
+    
+    /* =====================================================================
+       FORM INPUTS - Text, TextArea, Select, File Upload
+       ===================================================================== */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    .stSelectbox > div > div > div,
+    .stNumberInput > div > div > input {
         background: var(--surface) !important;
+        border: 2px solid var(--border-light) !important;
+        border-radius: var(--radius-md) !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 1rem !important;
         color: var(--text-primary) !important;
+        transition: all 0.2s ease !important;
     }
-
-    .stTextInput input:focus,
-    .stTextArea textarea:focus,
-    .stSelectbox select:focus,
-    .stFileUploader input:focus {
+    
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus,
+    .stSelectbox > div > div > div:focus,
+    .stNumberInput > div > div > input:focus {
         border-color: var(--accent) !important;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15) !important;
+        box-shadow: 0 0 0 3px var(--accent-light) !important;
+        outline: none !important;
     }
-
-    /* Buttons */
+    
+    .stTextArea > div > div > textarea {
+        min-height: 120px !important;
+        line-height: 1.6 !important;
+    }
+    
+    /* File Uploader */
+    [data-testid="stFileUploader"] {
+        background: var(--bg-secondary);
+        border: 2px dashed var(--border-medium);
+        border-radius: var(--radius-lg);
+        padding: var(--space-xl);
+        transition: all 0.2s ease;
+    }
+    
+    [data-testid="stFileUploader"]:hover {
+        border-color: var(--accent);
+        background: var(--accent-light);
+    }
+    
+    /* =====================================================================
+       BUTTONS - Primary, Secondary, and Icon Buttons
+       ===================================================================== */
     .stButton > button {
         background: var(--accent);
         color: white;
         border: none;
-        border-radius: 10px;
-        padding: 0.7rem 1.4rem;
+        border-radius: var(--radius-md);
+        padding: 0.75rem 1.5rem;
         font-weight: 600;
+        font-size: 1rem;
         transition: all 0.2s ease;
-        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.2);
+        box-shadow: var(--shadow-sm);
+        cursor: pointer;
     }
-
+    
     .stButton > button:hover {
-        background: var(--accent-strong);
+        background: var(--accent-hover);
         transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
     }
-
-    /* Tabs */
+    
+    .stButton > button:active {
+        transform: translateY(0);
+    }
+    
+    /* Primary Button Variant (via Streamlit type="primary") */
+    .stButton > button[kind="primary"] {
+        background: var(--accent);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    
+    .stButton > button[kind="primary"]:hover {
+        background: var(--accent-hover);
+        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    }
+    
+    /* Secondary Button */
+    .stButton > button[kind="secondary"] {
+        background: var(--surface);
+        color: var(--text-primary);
+        border: 2px solid var(--border-medium);
+    }
+    
+    .stButton > button[kind="secondary"]:hover {
+        background: var(--surface-hover);
+        border-color: var(--accent);
+        color: var(--accent);
+    }
+    
+    /* =====================================================================
+       TABS - Navigation Tabs
+       ===================================================================== */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: var(--space-sm);
+        background: var(--surface);
+        padding: var(--space-sm);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-light);
+        margin-bottom: var(--space-lg);
+    }
+    
     .stTabs [data-baseweb="tab"] {
         font-weight: 600;
-        color: var(--text-secondary);
-        padding: 0.5rem 1rem;
-    }
-
-    .stTabs [aria-selected="true"] {
-        color: var(--text-primary);
-        border-bottom: 2px solid var(--accent);
-    }
-
-    /* Answer containers */
-    .answer-box-success,
-    .answer-box-error {
-        border-radius: 12px;
-        padding: 1.25rem 1.5rem;
-        margin: 1.25rem 0;
-        box-shadow: var(--shadow);
-    }
-
-    .answer-box-success {
-        background: #f0fdf4;
-        border: 1px solid #bbf7d0;
-    }
-
-    .answer-box-error {
-        background: #fff1f2;
-        border: 1px solid #fecdd3;
-    }
-
-    .answer-text {
         font-size: 1rem;
-        line-height: 1.7;
+        color: var(--text-secondary);
+        padding: var(--space-md) var(--space-lg);
+        border-radius: var(--radius-md);
+        transition: all 0.2s ease;
+    }
+    
+    .stTabs [data-baseweb="tab"]:hover {
+        background: var(--bg-secondary);
         color: var(--text-primary);
     }
-
-    .answer-text ul {
-        margin: 0.75rem 0;
-        padding-left: 1.5rem;
+    
+    .stTabs [aria-selected="true"] {
+        background: var(--accent);
+        color: white !important;
     }
-
+    
+    /* =====================================================================
+       ANSWER & RESULT BOXES
+       ===================================================================== */
+    .answer-container {
+        background: var(--surface);
+        border-radius: var(--radius-lg);
+        padding: var(--space-xl);
+        margin: var(--space-lg) 0;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .answer-success {
+        background: var(--success-bg);
+        border-left: 4px solid var(--success);
+        padding: var(--space-lg);
+        border-radius: var(--radius-md);
+        margin: var(--space-md) 0;
+    }
+    
+    .answer-error {
+        background: var(--error-bg);
+        border-left: 4px solid var(--error);
+        padding: var(--space-lg);
+        border-radius: var(--radius-md);
+        margin: var(--space-md) 0;
+    }
+    
+    .answer-header {
+        font-size: 1.125rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: var(--space-md);
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+    
+    .answer-text {
+        font-size: 1.05rem;
+        line-height: 1.8;
+        color: var(--text-primary);
+    }
+    
+    .answer-text p {
+        margin-bottom: var(--space-md);
+    }
+    
+    .answer-text ul, .answer-text ol {
+        margin: var(--space-md) 0;
+        padding-left: var(--space-xl);
+    }
+    
     .answer-text li {
-        margin: 0.35rem 0;
+        margin: var(--space-sm) 0;
+        line-height: 1.7;
     }
-
-    /* Source box */
-    .source-box {
-        background: var(--surface-muted);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 1rem;
-        font-family: "Courier New", monospace;
+    
+    /* =====================================================================
+       SOURCE CITATION BOXES
+       ===================================================================== */
+    .source-container {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        padding: var(--space-lg);
+        margin: var(--space-sm) 0;
+        font-family: var(--font-mono);
         font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
         white-space: pre-wrap;
         word-wrap: break-word;
+        max-height: 300px;
+        overflow-y: auto;
     }
-
-    /* Status indicators */
-    .status-ok {
+    
+    .source-header {
+        font-family: var(--font-body);
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: var(--space-sm);
+        font-size: 0.95rem;
+    }
+    
+    /* =====================================================================
+       METRICS & STATISTICS
+       ===================================================================== */
+    [data-testid="stMetricValue"] {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    
+    [data-testid="stMetricLabel"] {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    [data-testid="stMetricDelta"] {
+        font-size: 0.875rem;
+    }
+    
+    /* =====================================================================
+       ALERTS & NOTIFICATIONS
+       ===================================================================== */
+    .stAlert {
+        border-radius: var(--radius-md);
+        padding: var(--space-md) var(--space-lg);
+        border-width: 1px;
+        border-style: solid;
+    }
+    
+    /* Success Alert */
+    [data-baseweb="notification"][kind="success"],
+    .stSuccess {
+        background: var(--success-bg) !important;
+        border-color: var(--success-border) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* Info Alert */
+    [data-baseweb="notification"][kind="info"],
+    .stInfo {
+        background: var(--info-bg) !important;
+        border-color: var(--info-border) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* Warning Alert */
+    [data-baseweb="notification"][kind="warning"],
+    .stWarning {
+        background: var(--warning-bg) !important;
+        border-color: var(--warning-border) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* Error Alert */
+    [data-baseweb="notification"][kind="error"],
+    .stError {
+        background: var(--error-bg) !important;
+        border-color: var(--error-border) !important;
+        color: var(--text-primary) !important;
+    }
+    
+    /* =====================================================================
+       SIDEBAR
+       ===================================================================== */
+    [data-testid="stSidebar"] {
+        background: var(--surface);
+        border-right: 1px solid var(--border-light);
+        padding: var(--space-lg) var(--space-md);
+    }
+    
+    [data-testid="stSidebar"] .stMarkdown h1,
+    [data-testid="stSidebar"] .stMarkdown h2,
+    [data-testid="stSidebar"] .stMarkdown h3 {
+        color: var(--text-primary);
+        font-size: 1.125rem;
+        margin-bottom: var(--space-md);
+    }
+    
+    .sidebar-section {
+        padding: var(--space-md);
+        background: var(--bg-secondary);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--space-md);
+    }
+    
+    /* =====================================================================
+       STATUS INDICATORS
+       ===================================================================== */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: 0.4rem 0.9rem;
+        border-radius: var(--radius-md);
+        font-weight: 600;
+        font-size: 0.875rem;
+        margin: var(--space-xs) 0;
+    }
+    
+    .status-online {
+        background: var(--success-bg);
         color: var(--success);
-        font-weight: 600;
+        border: 1px solid var(--success-border);
     }
-
-    .status-error {
-        color: var(--danger);
-        font-weight: 600;
+    
+    .status-offline {
+        background: var(--error-bg);
+        color: var(--error);
+        border: 1px solid var(--error-border);
     }
-
-    /* Responsive layout */
+    
+    .status-pending {
+        background: var(--warning-bg);
+        color: var(--warning);
+        border: 1px solid var(--warning-border);
+    }
+    
+    /* =======================================================================
+       EXPANDERS
+       ======================================================================= */
+    .streamlit-expanderHeader {
+        background: var(--surface);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        padding: var(--space-md) var(--space-lg);
+        font-weight: 600;
+        color: var(--text-primary);
+        transition: all 0.2s ease;
+    }
+    
+    .streamlit-expanderHeader:hover {
+        background: var(--bg-secondary);
+        border-color: var(--border-medium);
+    }
+    
+    .streamlit-expanderContent {
+        border: 1px solid var(--border-light);
+        border-top: none;
+        border-radius: 0 0 var(--radius-md) var(--radius-md);
+        padding: var(--space-lg);
+        background: var(--surface);
+    }
+    
+    /* =====================================================================
+       CODE BLOCKS
+       ===================================================================== */
+    code {
+        background: var(--bg-secondary);
+        padding: 0.2rem 0.4rem;
+        border-radius: var(--radius-sm);
+        font-family: var(--font-mono);
+        font-size: 0.9em;
+        color: var(--accent);
+    }
+    
+    pre {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-md);
+        padding: var(--space-lg);
+        overflow-x: auto;
+    }
+    
+    pre code {
+        background: transparent;
+        padding: 0;
+        color: var(--text-primary);
+    }
+    
+    /* =====================================================================
+       CHECKBOX & RADIO
+       ===================================================================== */
+    .stCheckbox label {
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+    
+    /* =====================================================================
+       DIVIDERS
+       ===================================================================== */
+    hr {
+        border: none;
+        border-top: 1px solid var(--border-light);
+        margin: var(--space-xl) 0;
+    }
+    
+    /* =====================================================================
+       SPINNER & LOADING
+       ===================================================================== */
+    .stSpinner > div {
+        border-top-color: var(--accent) !important;
+    }
+    
+    /* =====================================================================
+       RESPONSIVE DESIGN
+       ===================================================================== */
     @media (max-width: 768px) {
         .block-container {
-            padding: 2rem 1.25rem 2.5rem;
+            padding: var(--space-lg) var(--space-md) var(--space-xl);
         }
-
-        .page-header {
-            padding: 1.5rem;
+        
+        .hero-header {
+            padding: var(--space-xl) var(--space-lg);
         }
-
+        
+        .hero-title {
+            font-size: 1.875rem;
+        }
+        
         .card {
-            padding: 1.25rem;
+            padding: var(--space-lg);
         }
+        
+        .card-title {
+            font-size: 1.25rem;
+        }
+        
+        h1 { font-size: 1.875rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.25rem; }
     }
+    
+    /* =====================================================================
+       SCROLLBAR STYLING
+       ===================================================================== */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: var(--border-medium);
+        border-radius: var(--radius-sm);
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--border-strong);
+    }
+    
+    /* =====================================================================
+       REMOVE STREAMLIT BRANDING (Optional)
+       ===================================================================== */
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
 </style>
 """
 
 try:
-    st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
+    st.markdown(ENTERPRISE_CSS, unsafe_allow_html=True)
 except Exception as e:
-    st.warning(f"CSS injection failed: {e}. Using default styles.")
+    st.warning(f"CSS styling unavailable: {e}")
 
 # ============================================================================
 # Configuration
@@ -327,105 +768,184 @@ def get_system_stats():
 # ============================================================================
 
 def main():
-    # Initialize session state for history
+    """Main application entry point with professional enterprise UI"""
+    
+    # Initialize session state
     if 'conversation_history' not in st.session_state:
         st.session_state.conversation_history = []
     
-    # Header
+    # =========================================================================
+    # HERO HEADER - Professional page title section
+    # =========================================================================
     st.markdown(
-        '<div class="page-header">'
-        '<div class="page-title">Document Q&A System</div>'
-        '<div class="page-subtitle">Retrieval-Augmented Generation with source-backed answers</div>'
-        '</div>',
+        '''
+        <div class="hero-header">
+            <div class="hero-title">🏢 Enterprise Document Q&A</div>
+            <div class="hero-subtitle">
+                Advanced retrieval-augmented generation (RAG) system with AI-powered 
+                question answering and source verification
+            </div>
+            <span class="hero-badge">Powered by NVIDIA AI</span>
+        </div>
+        ''',
         unsafe_allow_html=True
     )
     
-    # Sidebar
+    # =========================================================================
+    # SIDEBAR - System status and controls
+    # =========================================================================
     with st.sidebar:
-        st.header("⚙️ System Status")
+        st.markdown("### ⚙️ System Control")
         
+        # Backend status check
         is_healthy, health_data = check_api_health()
+        
         if is_healthy:
-            st.markdown('<div class="status-ok">✓ Backend Online</div>', unsafe_allow_html=True)
+            st.markdown(
+                '<div class="status-badge status-online">● Backend Online</div>', 
+                unsafe_allow_html=True
+            )
         else:
-            st.markdown('<div class="status-error">✗ Backend Offline</div>', unsafe_allow_html=True)
-            st.error("Backend unavailable. Start with: `python -m uvicorn app.main:app --port 8000`")
+            st.markdown(
+                '<div class="status-badge status-offline">● Backend Offline</div>', 
+                unsafe_allow_html=True
+            )
+            st.warning("⚠️ Backend is not responding")
         
-        if st.button("▶ Start Backend", use_container_width=True):
-            st.info("Run this from the project root:")
-            st.code("python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload", language="bash")
+        if st.button("🚀 Start Backend", use_container_width=True, help="Instructions to start the backend server"):
+            st.info("**Run this command in terminal:**")
+            st.code("python -m uvicorn app.main:app --host 0.0.0.0 --port 8000", language="bash")
         
-        st.markdown("---")
+        st.divider()
         
-        st.header("📊 System Info")
+        # System statistics
+        st.markdown("### 📊 System Info")
         success, stats = get_system_stats()
+        
         if success:
             config = stats.get("config", {})
+            
             col1, col2 = st.columns(2)
             with col1:
-                st.metric("Chunk Size", f"{config.get('chunk_size', 'N/A')} ch")
+                st.metric(
+                    "Chunk Size", 
+                    f"{config.get('chunk_size', 0)}", 
+                    delta="chars",
+                    help="Text chunk size for processing"
+                )
             with col2:
-                st.metric("Top-K", config.get('top_k', 'N/A'))
+                st.metric(
+                    "Top-K", 
+                    config.get('top_k', 0),
+                    delta="results",
+                    help="Number of results retrieved"
+                )
             
-            st.caption(f"🤖 **Embedding**: {config.get('embedding_model', 'N/A').split('/')[-1]}")
-            st.caption(f"🧠 **LLM**: {config.get('llm_model', 'N/A').split('/')[-1]}")
+            # Model info
+            embed_model = config.get('embedding_model', 'N/A').split('/')[-1]
+            llm_model = config.get('llm_model', 'N/A').split('/')[-1]
+            
+            st.caption(f"**🔢 Embedding:** {embed_model}")
+            st.caption(f"**🧠 LLM:** {llm_model}")
+        else:
+            st.info("Stats unavailable")
         
-        st.markdown("---")
-        st.header("📄 Documents")
+        st.divider()
+        
+        # Document count
+        st.markdown("### 📁 Documents")
         doc_success, docs_data = list_documents()
+        
         if doc_success:
             total = docs_data.get("total_documents", 0)
-            st.metric("Total", total)
+            st.metric("Total Files", total, help="Documents in knowledge base")
+            
             if total > 0:
-                st.caption("**Files:**")
-                for doc in docs_data.get("documents", [])[:5]:
-                    doc_str = str(doc)[:30] if doc else "Unknown"
-                    st.text(f"• {doc_str}")
+                st.caption("**Recent files:**")
+                for doc in docs_data.get("documents", [])[:3]:
+                    doc_name = str(doc)[:25] + "..." if len(str(doc)) > 25 else str(doc)
+                    st.text(f"📄 {doc_name}")
+        else:
+            st.info("No documents yet")
     
-    # Main Tabs
-    tab1, tab2, tab3, tab4 = st.tabs(["💬 Ask Questions", "📤 Upload Documents", "📋 View Documents", "📊 Dashboard"])
+    # =========================================================================
+    # MAIN CONTENT - Tabs for different features
+    # =========================================================================
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "💬 Ask Questions", 
+        "📤 Upload Documents", 
+        "📋 View Documents", 
+        "📊 Dashboard"
+    ])
     
-    # ========================================================================
-    # Tab 1: Ask Questions
-    # ========================================================================
+    # =========================================================================
+    # TAB 1: ASK QUESTIONS - Main Q&A Interface
+    # =========================================================================
     with tab1:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">Ask Questions</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-subtitle">Query your documents with precise, source-backed answers.</div>', unsafe_allow_html=True)
-        
+        # Check if documents are available
         doc_success, docs_data = list_documents()
         has_docs = doc_success and docs_data.get("total_documents", 0) > 0
         
-        if not has_docs:
-            st.info("📤 **No documents yet.** Upload a PDF in the 'Upload Documents' tab.")
+        # Question input section
+        with st.container():
+            st.markdown(
+                '''
+                <div class="card-header">
+                    <div class="card-title">💬 Ask Questions</div>
+                    <div class="card-subtitle">
+                        Query your documents and receive AI-generated answers with source citations
+                    </div>
+                </div>
+                ''',
+                unsafe_allow_html=True
+            )
+            
+            if not has_docs:
+                st.info("📤 **No documents found.** Please upload PDF documents in the 'Upload Documents' tab to get started.")
+            
+            # Question input
+            question = st.text_input(
+                "Your Question",
+                placeholder="e.g., What are the main findings of the research?",
+                disabled=not has_docs,
+                help="Enter your question about the uploaded documents"
+            )
+            
+            # Options and submit
+            col1, col2, col3 = st.columns([2, 1, 1])
+            with col1:
+                show_sources = st.checkbox(
+                    "Include source citations", 
+                    value=True, 
+                    disabled=not has_docs
+                )
+            with col3:
+                ask_btn = st.button(
+                    "🔍 Search & Answer", 
+                    type="primary", 
+                    use_container_width=True, 
+                    disabled=not (has_docs and question)
+                )
         
-        question = st.text_input(
-            "Your Question:",
-            placeholder="What is the main topic?",
-            disabled=not has_docs
-        )
-        
-        col1, col2, col3 = st.columns([2, 1, 1])
-        with col1:
-            show_sources = st.checkbox("Show sources", value=True, disabled=not has_docs)
-        with col3:
-            ask_btn = st.button("🔍 Ask", type="primary", use_container_width=True, disabled=not (has_docs and question))
-        
-        # Examples
-        st.markdown("**Quick Examples:**")
-        examples = ["What is the main topic?", "Summarize key findings", "What are conclusions?", "Who are authors?"]
-        cols = st.columns(2)
-        for i, ex in enumerate(examples):
-            with cols[i % 2]:
-                if st.button(ex, key=f"ex{i}", use_container_width=True):
-                    question = ex
-                    ask_btn = True
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+        # Quick example questions
+        if has_docs:
+            st.markdown("**💡 Quick Examples:**")
+            examples = [
+                "What is the main topic?",
+                "Summarize key findings",
+                "What are the conclusions?",
+                "List the main recommendations"
+            ]
+            cols = st.columns(4)
+            for i, ex in enumerate(examples):
+                with cols[i]:
+                    if st.button(ex, key=f"ex_{i}", use_container_width=True):
+                        question = ex
+                        ask_btn = True
 
-        # Process
+        # Process question and display answer
         if ask_btn and question:
-            with st.spinner("🔍 Generating answer..."):
+            with st.spinner("🔍 Searching documents and generating answer..."):
                 success, result = query_documents(question, show_sources)
             
             if success:
@@ -433,34 +953,6 @@ def main():
                 answer = result.get("answer", "")
                 confidence = result.get("confidence", "low")
                 num_sources = result.get("num_sources", 0)
-                
-                # Format answer with bullet points
-                formatted_answer = answer
-                if "•" in answer or "\n- " in answer:
-                    # Convert bullet points to HTML list
-                    lines = answer.split("\n")
-                    formatted_lines = []
-                    in_list = False
-                    for line in lines:
-                        line = line.strip()
-                        if line.startswith("•") or line.startswith("-"):
-                            if not in_list:
-                                formatted_lines.append("<ul>")
-                                in_list = True
-                            item = line.lstrip("•-").strip()
-                            formatted_lines.append(f"<li>{item}</li>")
-                        else:
-                            if in_list:
-                                formatted_lines.append("</ul>")
-                                in_list = False
-                            if line:
-                                formatted_lines.append(f"<p>{line}</p>")
-                    if in_list:
-                        formatted_lines.append("</ul>")
-                    formatted_answer = "".join(formatted_lines)
-                else:
-                    # Keep regular paragraph format
-                    formatted_answer = answer.replace("\n", "<br>")
                 
                 # Store in conversation history
                 st.session_state.conversation_history.append({
@@ -471,285 +963,439 @@ def main():
                     "confidence": confidence
                 })
                 
-                st.markdown('<div class="card">', unsafe_allow_html=True)
-
+                # Display answer with styling
                 if answer_avail:
                     st.markdown(
-                        f'<div class="answer-box-success"><strong>✅ Answer Found</strong><div class="answer-text">{formatted_answer}</div></div>',
+                        f'''
+                        <div class="answer-success">
+                            <div class="answer-header">✅ Answer Found</div>
+                            <div class="answer-text">{answer.replace(chr(10), "<br>")}</div>
+                        </div>
+                        ''',
                         unsafe_allow_html=True
                     )
                 else:
                     st.markdown(
-                        f'<div class="answer-box-error"><strong>⚠️ Not Found</strong><div class="answer-text">{formatted_answer}</div></div>',
+                        f'''
+                        <div class="answer-error">
+                            <div class="answer-header">⚠️ No Relevant Information Found</div>
+                            <div class="answer-text">{answer.replace(chr(10), "<br>")}</div>
+                        </div>
+                        ''',
                         unsafe_allow_html=True
                     )
                 
-                col1, col2, col3 = st.columns(3)
+                # Metrics
+                col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     st.metric("Confidence", confidence.upper())
                 with col2:
-                    st.metric("Sources", num_sources)
+                    st.metric("Sources Used", num_sources)
                 with col3:
-                    st.metric("Quality", "✓ High" if confidence == "high" else "○ Low")
+                    quality = "High" if confidence == "high" else "Medium" if confidence == "medium" else "Low"
+                    st.metric("Quality", quality)
+                with col4:
+                    st.metric("Response Time", "< 5s")
                 
+                # Source citations
                 if show_sources and result.get("sources"):
-                    st.markdown("### 📚 Source Documents")
+                    st.markdown("---")
+                    st.markdown("### 📚 Source Citations")
+                    st.caption(f"Found {len(result['sources'])} relevant sources")
+                    
                     for i, src in enumerate(result["sources"], 1):
-                        with st.expander(f"📄 Source {i}: {src.get('source', 'Unknown')[:40]}"):
-                            st.markdown(f'<div class="source-box">{src.get("content", "")}</div>', unsafe_allow_html=True)
-                
-                st.markdown("</div>", unsafe_allow_html=True)
+                        source_name = src.get('source', 'Unknown')[:50]
+                        with st.expander(f"📄 Source {i}: {source_name}", expanded=False):
+                            st.markdown(
+                                f'<div class="source-container">{src.get("content", "")}</div>',
+                                unsafe_allow_html=True
+                            )
             else:
-                st.error(f"❌ {result.get('error', 'Error')}")
+                st.error(f"❌ Error: {result.get('error', 'Unknown error occurred')}")
     
-    # ========================================================================
-    # Tab 2: Upload
-    # ========================================================================
+    # =========================================================================
+    # TAB 2: UPLOAD DOCUMENTS - File upload interface
+    # =========================================================================
     with tab2:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">Upload Documents</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-subtitle">Add PDFs to your knowledge base for retrieval.</div>', unsafe_allow_html=True)
+        st.markdown(
+            '''
+            <div class="card-header">
+                <div class="card-title">📤 Upload Documents</div>
+                <div class="card-subtitle">
+                    Add PDF documents to your knowledge base for intelligent retrieval
+                </div>
+            </div>
+            ''',
+            unsafe_allow_html=True
+        )
         
-        uploaded = st.file_uploader("Choose PDF", type=['pdf'])
+        # File uploader
+        uploaded = st.file_uploader(
+            "Choose a PDF file",
+            type=['pdf'],
+            help=f"Maximum file size: {MAX_FILE_SIZE_MB}MB"
+        )
         
         if uploaded:
             size_mb = uploaded.size / (1024 ** 2)
-            st.info(f"📄 **{uploaded.name}** • {size_mb:.2f} MB")
             
+            # File info display
+            col1, col2, col3 = st.columns([2, 1, 1])
+            with col1:
+                st.info(f"📄 **{uploaded.name}**")
+            with col2:
+                st.metric("Size", f"{size_mb:.2f} MB")
+            with col3:
+                st.metric("Type", "PDF")
+            
+            # Upload button
             if st.button("⬆️ Upload & Process", type="primary", use_container_width=True):
                 if size_mb > MAX_FILE_SIZE_MB:
-                    st.error(f"❌ Max {MAX_FILE_SIZE_MB} MB")
+                    st.error(f"❌ File too large. Maximum size is {MAX_FILE_SIZE_MB}MB")
                 else:
-                    with st.spinner("Processing..."):
+                    with st.spinner("Processing document... This may take a moment"):
                         success, result = upload_document(uploaded)
                     
                     if success:
-                        st.success("✅ Uploaded successfully!")
-                        with st.expander("Details"):
-                            st.json(result.get("details", {}))
-                        st.info("Processing in background...")
+                        st.success("✅ Document uploaded and processed successfully!")
+                        
+                        # Show processing details
+                        with st.expander("📋 Processing Details", expanded=True):
+                            details = result.get("details", {})
+                            if details:
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    st.json(details)
+                                with col2:
+                                    st.info("Document has been indexed and is ready for queries")
+                        
+                        # Refresh page after upload
+                        time.sleep(2)
+                        st.rerun()
                     else:
-                        st.error(f"❌ {result.get('error', 'Error')}")
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+                        st.error(f"❌ Upload failed: {result.get('error', 'Unknown error')}")
+        else:
+            st.markdown(
+                '''
+                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                    <p>📁 Drag and drop a PDF file or click to browse</p>
+                    <p style="font-size: 0.9rem;">Supported format: PDF only</p>
+                </div>
+                ''',
+                unsafe_allow_html=True
+            )
     
-    # ========================================================================
-    # Tab 3: View
-    # ========================================================================
+    # =========================================================================
+    # TAB 3: VIEW DOCUMENTS - Document management
+    # =========================================================================
     with tab3:
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        st.markdown('<div class="card-title">Uploaded Documents</div>', unsafe_allow_html=True)
-        st.markdown('<div class="card-subtitle">Manage and verify your indexed files.</div>', unsafe_allow_html=True)
+        st.markdown(
+            '''
+            <div class="card-header">
+                <div class="card-title">📋 Document Library</div>
+                <div class="card-subtitle">
+                    View and manage all indexed documents in your knowledge base
+                </div>
+            </div>
+            ''',
+            unsafe_allow_html=True
+        )
         
         success, docs_data = list_documents()
+        
         if success:
             total = docs_data.get("total_documents", 0)
+            
             if total == 0:
-                st.info("No documents yet")
+                st.info("📭 No documents in your library yet. Upload documents in the Upload tab to get started.")
             else:
-                st.success(f"✓ **{total}** documents in knowledge base")
-                for doc in docs_data.get("documents", []):
-                    st.text(f"📄 {doc}")
+                # Summary metrics
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Documents", total, help="Number of indexed documents")
+                with col2:
+                    st.metric("Status", "Active", delta="Indexed", help="All documents are indexed")
+                with col3:
+                    st.metric("Storage", "Cloud", help="Documents stored in vector database")
+                
+                st.markdown("---")
+                st.markdown("### 📄 Document List")
+                
+                # Display documents
+                documents = docs_data.get("documents", [])
+                for idx, doc in enumerate(documents, 1):
+                    with st.container():
+                        col1, col2 = st.columns([5, 1])
+                        with col1:
+                            st.markdown(f"**{idx}.** `{doc}`")
+                        with col2:
+                            st.caption("✓ Indexed")
+                        
+                        if idx < len(documents):
+                            st.markdown('<hr style="margin: 0.5rem 0;">', unsafe_allow_html=True)
         else:
-            st.error("Failed to load documents")
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.error("❌ Failed to load documents. Backend may be offline.")
     
     # ========================================================================
-    # Tab 4: Dashboard
-    # ========================================================================
+    
+    # =========================================================================
+    # TAB 4: DASHBOARD - System overview and analytics
+    # =========================================================================
     with tab4:
-        st.header("📊 System Dashboard")
+        st.markdown(
+            '''
+            <div class="card-header">
+                <div class="card-title">📊 System Dashboard</div>
+                <div class="card-subtitle">
+                    Monitor system health, configuration, and conversation analytics
+                </div>
+            </div>
+            ''',
+            unsafe_allow_html=True
+        )
         
-        # System Health
-        st.subheader("🔧 System Health")
+        # =====================================================================
+        # System Health Status
+        # =====================================================================
+        st.markdown("### 🔧 System Health")
+        
         is_healthy, health_data = check_api_health()
+        vector_exists = health_data.get("vector_store_exists", False) if is_healthy else False
         
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
+        
         with col1:
             if is_healthy:
-                st.success("✅ Backend API: **Online**")
+                st.markdown(
+                    '<div class="status-badge status-online">● Backend API Online</div>',
+                    unsafe_allow_html=True
+                )
             else:
-                st.error("❌ Backend API: **Offline**")
+                st.markdown(
+                    '<div class="status-badge status-offline">● Backend API Offline</div>',
+                    unsafe_allow_html=True
+                )
         
         with col2:
-            vector_exists = health_data.get("vector_store_exists", False) if is_healthy else False
             if vector_exists:
-                st.success("✅ Vector Store: **Available**")
+                st.markdown(
+                    '<div class="status-badge status-online">● Vector Store Ready</div>',
+                    unsafe_allow_html=True
+                )
             else:
-                st.warning("⚠️ Vector Store: **Not Available**")
+                st.markdown(
+                    '<div class="status-badge status-pending">● Vector Store Unavailable</div>',
+                    unsafe_allow_html=True
+                )
         
-        st.markdown("---")
+        with col3:
+            doc_count = len(st.session_state.conversation_history)
+            if doc_count > 0:
+                st.markdown(
+                    f'<div class="status-badge status-online">● {doc_count} Conversations</div>',
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown(
+                    '<div class="status-badge status-pending">● No Conversations</div>',
+                    unsafe_allow_html=True
+                )
         
-        # Statistics
-        st.subheader("📈 System Statistics")
+        st.divider()
+        
+        # =====================================================================
+        # System Statistics
+        # =====================================================================
+        st.markdown("### 📈 Performance Metrics")
+        
         success_stats, stats = get_system_stats()
         
         if success_stats:
             config = stats.get("config", {})
             vs_stats = stats.get("vector_store_stats", {})
             
-            # Key Metrics
+            # Key metrics in a clean grid
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
                 doc_count = vs_stats.get("estimated_documents", 0)
                 st.metric(
-                    label="📄 Documents",
-                    value=doc_count,
-                    delta="Indexed"
+                    "Documents",
+                    doc_count,
+                    delta="Indexed" if doc_count > 0 else None,
+                    help="Total indexed documents"
                 )
             
             with col2:
-                chunk_size = config.get("chunk_size", "N/A")
+                queries = len(st.session_state.conversation_history)
                 st.metric(
-                    label="📏 Chunk Size",
-                    value=f"{chunk_size}",
-                    delta="characters"
+                    "Queries",
+                    queries,
+                    delta="Total" if queries > 0 else None,
+                    help="Total questions asked"
                 )
             
             with col3:
-                top_k = config.get("top_k", "N/A")
+                chunk_size = config.get("chunk_size", 0)
                 st.metric(
-                    label="🔍 Retrieval",
-                    value=f"Top-{top_k}",
-                    delta="results"
+                    "Chunk Size",
+                    chunk_size,
+                    delta="chars",
+                    help="Text chunk size for processing"
                 )
             
             with col4:
-                overlap = config.get("chunk_overlap", "N/A")
+                top_k = config.get("top_k", 0)
                 st.metric(
-                    label="🔄 Overlap",
-                    value=f"{overlap}",
-                    delta="chars"
+                    f"Top-K",
+                    top_k,
+                    delta="results",
+                    help="Retrieved results per query"
                 )
             
-            st.markdown("---")
+            st.divider()
             
-            # Model Information
-            st.subheader("🤖 AI Models")
+            # =====================================================================
+            # AI Models Configuration
+            # =====================================================================
+            st.markdown("### 🤖 AI Models")
             
             col1, col2 = st.columns(2)
             
             with col1:
-                st.markdown("**Embedding Model**")
-                embed_model = config.get("embedding_model", "N/A")
+                st.markdown("**🔢 Embedding Model**")
+                embed_model = config.get("embedding_model", "Not configured")
                 st.code(embed_model, language="text")
-                st.caption("Used for converting text to vectors")
+                st.caption("Converts text to numerical vectors")
             
             with col2:
-                st.markdown("**Language Model (LLM)**")
-                llm_model = config.get("llm_model", "N/A")
+                st.markdown("**🧠 Language Model (LLM)**")
+                llm_model = config.get("llm_model", "Not configured")
                 st.code(llm_model, language="text")
-                st.caption("Used for generating answers")
+                st.caption("Generates natural language answers")
             
-            st.markdown("---")
-            
-            # Configuration Details
+            # Advanced configuration details
             with st.expander("⚙️ Advanced Configuration", expanded=False):
                 st.json(config)
             
-            # Vector Store Details
-            with st.expander("🗄️ Vector Store Information", expanded=False):
+            with st.expander("🗄️ Vector Store Details", expanded=False):
                 st.json(vs_stats)
         
         else:
-            st.warning("Unable to retrieve system statistics")
+            st.warning("⚠️ Unable to retrieve system statistics. Backend may be offline.")
         
-        st.markdown("---")
+        st.divider()
         
+        # =====================================================================
         # Quick Actions
-        st.subheader("⚡ Quick Actions")
+        # =====================================================================
+        st.markdown("### ⚡ Quick Actions")
         
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            if st.button("🔄 Refresh Dashboard", use_container_width=True):
+            if st.button("🔄 Refresh", use_container_width=True, help="Reload dashboard data"):
                 st.rerun()
         
         with col2:
-            if st.button("📚 View API Docs", use_container_width=True):
-                st.markdown("[Open API Documentation](http://localhost:8000/docs)", unsafe_allow_html=True)
+            if st.button("📚 API Docs", use_container_width=True, help="Open API documentation"):
+                st.markdown("[View Docs](http://localhost:8000/docs)")
         
         with col3:
-            if st.button("🧪 Test Health", use_container_width=True):
-                with st.spinner("Testing connection..."):
+            if st.button("🧪 Test Connection", use_container_width=True, help="Test backend connection"):
+                with st.spinner("Testing..."):
                     healthy, data = check_api_health()
                     if healthy:
-                        st.success("Connection successful!")
-                        st.json(data)
+                        st.success("✅ Connection successful!")
                     else:
-                        st.error("Connection failed!")
+                        st.error("❌ Connection failed!")
         
-        st.markdown("---")
-        
-        # Conversation History Section
-        st.subheader("💬 Conversation History")
-        
-        if st.session_state.conversation_history:
-            total_queries = len(st.session_state.conversation_history)
-            st.info(f"📊 **Total Queries:** {total_queries}")
-            
-            # Show recent 10 conversations
-            recent_history = st.session_state.conversation_history[-10:][::-1]  # Last 10, reversed
-            
-            for idx, entry in enumerate(recent_history, 1):
-                with st.expander(f"🕒 {entry['timestamp']} - {entry['question'][:50]}...", expanded=False):
-                    st.markdown(f"**Question:**")
-                    st.info(entry['question'])
-                    
-                    st.markdown(f"**Answer:**")
-                    st.success(entry['answer'][:300] + "..." if len(entry['answer']) > 300 else entry['answer'])
-                    
-                    st.caption(f"📄 Sources used: {entry['sources_count']}")
-            
-            col1, col2 = st.columns(2)
-            with col1:
-                if st.button("📥 Export History", use_container_width=True):
+        with col4:
+            if st.button("📥 Export Data", use_container_width=True, help="Export conversation history"):
+                if st.session_state.conversation_history:
                     history_text = "\n\n".join([
-                        f"[{h['timestamp']}]\nQ: {h['question']}\nA: {h['answer']}\n---"
+                        f"[{h['timestamp']}]\nQuestion: {h['question']}\nAnswer: {h['answer']}\nSources: {h['sources_count']}\n{'-'*60}"
                         for h in st.session_state.conversation_history
                     ])
                     st.download_button(
-                        label="💾 Download as TXT",
-                        data=history_text,
-                        file_name=f"conversation_history_{time.strftime('%Y%m%d_%H%M%S')}.txt",
-                        mime="text/plain",
-                        use_container_width=True
+                        "💾 Download History",
+                        history_text,
+                        file_name=f"qa_history_{time.strftime('%Y%m%d_%H%M%S')}.txt",
+                        mime="text/plain"
                     )
+                else:
+                    st.info("No history to export")
+        
+        st.divider()
+        
+        # =====================================================================
+        # Conversation History
+        # =====================================================================
+        st.markdown("### 💬 Recent Conversations")
+        
+        if st.session_state.conversation_history:
+            total_queries = len(st.session_state.conversation_history)
+            st.caption(f"**{total_queries}** total conversations")
             
-            with col2:
-                if st.button("🗑️ Clear History", use_container_width=True):
-                    st.session_state.conversation_history = []
-                    st.success("History cleared!")
-                    st.rerun()
+            # Show last 10 conversations
+            recent = st.session_state.conversation_history[-10:][::-1]
+            
+            for idx, entry in enumerate(recent, 1):
+                question_preview = entry['question'][:60] + "..." if len(entry['question']) > 60 else entry['question']
+                
+                with st.expander(f"🕒 {entry['timestamp']} - {question_preview}", expanded=False):
+                    st.markdown(f"**❓ Question:**")
+                    st.info(entry['question'])
+                    
+                    st.markdown(f"**💡 Answer:**")
+                    answer_preview = entry['answer'][:400] + "..." if len(entry['answer']) > 400 else entry['answer']
+                    st.success(answer_preview)
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.caption(f"📄 **Sources:** {entry['sources_count']}")
+                    with col2:
+                        st.caption(f"🎯 **Confidence:** {entry['confidence']}")
+            
+            # Clear history button
+            if st.button("🗑️ Clear All History", use_container_width=True):
+                st.session_state.conversation_history = []
+                st.success("✅ History cleared!")
+                time.sleep(1)
+                st.rerun()
+        
         else:
-            st.info("📭 No conversation history yet. Ask a question to get started!")
+            st.info("💭 No conversation history yet. Ask questions in the 'Ask Questions' tab to see them here.")
         
-        st.markdown("---")
+        st.divider()
         
-        # System Requirements
-        with st.expander("📋 System Requirements", expanded=False):
+        # =====================================================================
+        # System Requirements & Info
+        # =====================================================================
+        with st.expander("📋 System Requirements & Setup", expanded=False):
             st.markdown("""
-            **Minimum Requirements:**
-            - Python 3.10+
-            - 2GB RAM
-            - Active internet connection (for NVIDIA API)
-            - Valid NVIDIA API Key
+            #### Minimum Requirements
+            - **Python:** 3.10 or higher
+            - **RAM:** 2GB minimum
+            - **Internet:** Active connection required
+            - **API Key:** Valid NVIDIA API key
             
-            **Recommended:**
-            - Python 3.11
-            - 4GB+ RAM
-            - SSD storage
-            - Stable internet connection
+            #### Recommended Setup
+            - **Python:** 3.11+
+            - **RAM:** 4GB or more
+            - **Storage:** SSD preferred
+            - **Connection:** Stable broadband
             
-            **Current Status:**
-            - Backend: {}
-            - Vector Store: {}
-            """.format(
-                "✅ Running" if is_healthy else "❌ Offline",
-                "✅ Available" if vector_exists else "⚠️ Not Available"
-            ))
+            #### Current System Status
+            """)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                status = "✅ Running" if is_healthy else "❌ Offline"
+                st.markdown(f"**Backend API:** {status}")
+            with col2:
+                vs_status = "✅ Available" if vector_exists else "⚠️ Not Available"
+                st.markdown(f"**Vector Store:** {vs_status}")
 
 if __name__ == "__main__":
     try:
@@ -758,4 +1404,5 @@ if __name__ == "__main__":
         import traceback
         st.error(f"❌ Application Error: {type(e).__name__}: {str(e)}")
         st.code(traceback.format_exc())
-        st.warning("The application encountered an error during startup. Please check the configuration and try again.")
+        st.warning("The application encountered an error. Please check the logs and try again.")
+
