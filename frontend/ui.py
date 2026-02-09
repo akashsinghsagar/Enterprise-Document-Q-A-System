@@ -769,9 +769,18 @@ def query_documents(question, return_sources=True):
     try:
         payload = {"question": question, "return_sources": return_sources}
         response = requests.post(f"{API_BASE_URL}/query", json=payload, timeout=30)
-        return response.status_code == 200, response.json() if response.status_code == 200 else {}
+        if response.status_code == 200:
+            return True, response.json()
+
+        error_detail = "Unknown error"
+        try:
+            error_detail = response.json().get("detail", error_detail)
+        except Exception:
+            error_detail = response.text or error_detail
+
+        return False, {"error": f"Query failed (status: {response.status_code})", "detail": error_detail}
     except Exception as e:
-        return False, {"error": str(e)}
+        return False, {"error": "Query request failed", "detail": str(e)}
 
 def list_documents():
     """List documents."""
@@ -1037,7 +1046,11 @@ def main():
                                 unsafe_allow_html=True
                             )
             else:
-                st.error(f"❌ Error: {result.get('error', 'Unknown error occurred')}")
+                error_msg = result.get("error", "Unknown error occurred")
+                error_detail = result.get("detail", "")
+                st.error(f"❌ Error: {error_msg}")
+                if error_detail:
+                    st.caption(f"Details: {error_detail}")
     
     # =========================================================================
     # TAB 2: UPLOAD DOCUMENTS - File upload interface
